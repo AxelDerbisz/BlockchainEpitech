@@ -7,7 +7,7 @@ const routes = require('./routes');
 const http = require('http');
 const { WebSocketServer } = require('ws');
 const admin = require("firebase-admin");
-const { CURRENCY_CODE, ISSUER_ADDRESS, ISSUER_SEED, NETWORK_URL, ORACLE_SEED} = require("./xrplConfig");
+const { CURRENCY_CODE, ISSUER_ADDRESS, ISSUER_SEED, NETWORK_URL, ORACLE_SEED } = require("./xrplConfig");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -31,15 +31,22 @@ function toHexUtf8(str) {
 const NFT_FLAG_BURNABLE = 0x00000001;
 const NFT_FLAG_TRANSFERABLE = 0x00000008;
 
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map(s => s.trim())
+  .filter(Boolean);
+
 
 app.use(express.json());
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true); // curl / healthz
+    const ok = ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin);
+    cb(ok ? null : new Error("CORS blocked"), ok);
+  },
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
+}));
 
 // pollIncomingPayments();
 app.locals.oracle = oracle;
@@ -91,15 +98,17 @@ indexer.onNewLedger = (ledger) => {
 app.use('/api', routes);
 app.use('/api', express.json(), mptRoutes);
 
+app.get("/healthz", (_req, res) => res.send("ok"));
+
 app.get('/health', (req, res) => {
-    res.json({
-        status: 'ok',
-        indexer: {
-            running: indexer.isRunning,
-            connected: indexer.client ? indexer.client.isConnected() : false,
-            stats: indexer.getStats(),
-        },
-    });
+  res.json({
+    status: 'ok',
+    indexer: {
+      running: indexer.isRunning,
+      connected: indexer.client ? indexer.client.isConnected() : false,
+      stats: indexer.getStats(),
+    },
+  });
 });
 
 if (!admin.apps.length) {
@@ -128,7 +137,9 @@ app.get("/api/connect", async (req, res) => {
         });
         console.log("Wallet signed:", result.response.account);
         subscription.unsubscribe();
-        localStorage.setItem('xrplAccount', result.response.account);
+        if (typeof localStorage !== "undefined") {
+          localStorage.setItem('xrplAccount', result.response.account);
+        }
       } else if (event.data.signed === false) {
         signedPayloads.set(payload.uuid, { signed: false });
         console.log("Signature refused");
@@ -613,39 +624,39 @@ app.post("/api/marketplace/buy", async (req, res) => {
 });
 
 server.listen(PORT, async () => {
-    console.log(`\nServeur HTTP + WS démarré sur le port ${PORT}`);
-    console.log(`XRPL WebSocket: ${XRPL_WSS_URL}`);
+  console.log(`\nServeur HTTP + WS démarré sur le port ${PORT}`);
+  console.log(`XRPL WebSocket: ${XRPL_WSS_URL}`);
 
-    try {
-        await indexer.startListener(db);
-        indexer.startHealthCheck(30000);
+  try {
+    await indexer.startListener(db);
+    indexer.startHealthCheck(30000);
 
-        console.log('Indexeur XRPL prêt et à l\'écoute\n');
+    console.log('Indexeur XRPL prêt et à l\'écoute\n');
 
-    } catch (error) {
-        console.error('Erreur démarrage indexeur:', error.message);
-        console.log('Tentative de reconnexion...');
-    }
+  } catch (error) {
+    console.error('Erreur démarrage indexeur:', error.message);
+    console.log('Tentative de reconnexion...');
+  }
 });
 
 process.on('SIGINT', async () => {
-    console.log('\nArrêt du serveur...');
-    indexer.stopHealthCheck();
-    await indexer.stopListener();
-    server.close(() => {
-        console.log('Serveur arrêté proprement');
-        process.exit(0);
-    });
+  console.log('\nArrêt du serveur...');
+  indexer.stopHealthCheck();
+  await indexer.stopListener();
+  server.close(() => {
+    console.log('Serveur arrêté proprement');
+    process.exit(0);
+  });
 });
 
 process.on('SIGTERM', async () => {
-    console.log('\nArrêt du serveur (SIGTERM)...');
-    indexer.stopHealthCheck();
-    await indexer.stopListener();
-    server.close(() => {
-        console.log('Serveur arrêté proprement');
-        process.exit(0);
-    });
+  console.log('\nArrêt du serveur (SIGTERM)...');
+  indexer.stopHealthCheck();
+  await indexer.stopListener();
+  server.close(() => {
+    console.log('Serveur arrêté proprement');
+    process.exit(0);
+  });
 });
 
 module.exports = app;
