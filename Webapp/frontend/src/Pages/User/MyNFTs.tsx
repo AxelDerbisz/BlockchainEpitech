@@ -12,8 +12,6 @@ interface NFTMetadata {
   image?: string;
 }
 
-const API_BASE = "http://localhost:4001";
-
 export default function MyNfts() {
   const [account, setAccount] = useState<string | null>(
     localStorage.getItem("xrplAccount")
@@ -58,7 +56,7 @@ export default function MyNfts() {
   const fetchNfts = async (acct: string) => {
     setLoading(true);
     try {
-      const r = await fetch(`${API_BASE}/api/nft/list/${acct}?t=${Date.now()}`, {
+      const r = await fetch(`/api/nft/list/${acct}?t=${Date.now()}`, {
         cache: "no-store",
       });
       const data = await r.json();
@@ -90,7 +88,7 @@ export default function MyNfts() {
 
     try {
       setBurnStatus("Creating burn request...");
-      const r = await fetch(`${API_BASE}/api/nft/burn`, {
+      const r = await fetch(`/api/nft/burn`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ account, NFTokenID: nftId }),
@@ -111,7 +109,7 @@ export default function MyNfts() {
     try {
       esRef.current?.close();
     } catch {}
-    const es = new EventSource(`${API_BASE}/api/status/${uuid}`);
+    const es = new EventSource("/api/status/${uuid}");
     esRef.current = es;
 
     let gotSigned = false;
@@ -141,7 +139,7 @@ export default function MyNfts() {
     if (!account) return;
     for (let i = 0; i < 10; i++) {
       await new Promise((r) => setTimeout(r, 2000));
-      const res = await fetch(`${API_BASE}/api/nft/list/${account}?t=${Date.now()}`);
+      const res = await fetch(`/api/nft/list/${account}?t=${Date.now()}`);
       const data = await res.json();
       const stillExists = data.account_nfts?.some(
         (n: any) => n.NFTokenID === burnedTokenId
@@ -169,7 +167,7 @@ export default function MyNfts() {
     try {
       setSellStatus("Creating sale request...");
       setSellingId(nftId);
-      const r = await fetch(`${API_BASE}/api/marketplace/sell`, {
+      const r = await fetch(`/api/marketplace/sell`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ account, nftId, price, uri }),
@@ -192,7 +190,7 @@ export default function MyNfts() {
     try {
       esRef.current?.close();
     } catch {}
-    const es = new EventSource(`${API_BASE}/api/status/${uuid}`);
+    const es = new EventSource(`/api/status/${uuid}`);
     esRef.current = es;
 
     es.onmessage = async (ev: MessageEvent) => {
@@ -200,7 +198,7 @@ export default function MyNfts() {
         const payload = JSON.parse(ev.data);
         if (payload?.signed === true) {
           setSellStatus("✅ Sell offer signed — activating...");
-          await fetch(`${API_BASE}/api/marketplace/confirm-sell`, {
+          await fetch(`/api/marketplace/confirm-sell`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ nftId }),

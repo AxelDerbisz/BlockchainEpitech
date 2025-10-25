@@ -46,7 +46,7 @@ export function AccountPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:4001/api/connect");
+      const res = await fetch("/api/connect");
       const data = await res.json();
 
       const qrWindow = window.open("", "_blank", "width=400,height=500");
