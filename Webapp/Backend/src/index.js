@@ -53,7 +53,7 @@ app.locals.oracle = oracle;
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-setInterval(oracle.updatePrice.bind(oracle), 5 * 60 * 1000).unref();
+// setInterval(oracle.updatePrice.bind(oracle), 5 * 60 * 1000).unref();
 
 wss.on('connection', (ws) => {
   console.log('Nouveau client WebSocket connecté');
