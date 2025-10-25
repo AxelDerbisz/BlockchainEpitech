@@ -17,8 +17,6 @@ interface NFTMetadata {
   image?: string;
 }
 
-const API_BASE = "http://localhost:4001";
-
 export default function Home() {
   const { user } = useAuth();
   const displayName =

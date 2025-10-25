@@ -142,7 +142,7 @@ const NVDAFungible: React.FC = () => {
         setStatus("Connect your Xaman wallet or enter an XRPL address first.");
         return;
       }
-      const res = await fetch("http://localhost:4001/api/mpt/trustline", {
+      const res = await fetch("/api/mpt/trustline", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ address: effectiveAddress }),
@@ -165,7 +165,7 @@ const NVDAFungible: React.FC = () => {
       return;
     }
     try {
-      const res = await fetch(`http://localhost:4001/api/mpt/balance/${effectiveAddress}`);
+      const res = await fetch(`/api/mpt/balance/${effectiveAddress}`);
       const data = await res.json();
       setBalance(data.balance ?? "0");
       setStatus("Balance updated.");
@@ -193,7 +193,7 @@ const NVDAFungible: React.FC = () => {
       }
       const token = await user.getIdToken();
 
-      const res = await fetch("http://localhost:4001/api/mpt/issue", {
+      const res = await fetch("/api/mpt/issue", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -354,7 +354,7 @@ function OracleWidget() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:4001/api/latest")
+    fetch("/api/latest")
       .then(async (r) => {
         if (!r.ok) {
           let msg = `Request failed (${r.status})`;
@@ -422,7 +422,7 @@ function AMMDeposit({ userWallet }: { userWallet: string | null }) {
     setPayload(null);
 
     try {
-      const res = await fetch("http://localhost:4001/api/amm/deposit/payload", {
+      const res = await fetch("/api/amm/deposit/payload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -447,7 +447,7 @@ function AMMDeposit({ userWallet }: { userWallet: string | null }) {
       }
 
       try {
-        const ammRes = await fetch("http://localhost:4001/api/amm/info");
+        const ammRes = await fetch("/api/amm/info");
         if (ammRes.ok) {
           const ammData = await ammRes.json();
           setPoolInfo(ammData);
@@ -532,7 +532,7 @@ function AMMSwapAndWithdraw({ userWallet }: { userWallet: string | null }) {
 
   const swap = async () => {
     if (!userWallet) return setStatus("Connect wallet first.");
-    const res = await fetch("http://localhost:4001/api/amm/swap/payload", {
+    const res = await fetch("/api/amm/swap/payload", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userAddress: userWallet, fromCurrency: "XRP", toCurrency: "NVDA", fromAmount: swapAmount }),
@@ -544,7 +544,7 @@ function AMMSwapAndWithdraw({ userWallet }: { userWallet: string | null }) {
 
   const withdraw = async () => {
     if (!userWallet) return setStatus("Connect wallet first.");
-    const res = await fetch("http://localhost:4001/api/amm/withdraw/payload", {
+    const res = await fetch("/api/amm/withdraw/payload", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userAddress: userWallet, amount: withdrawLP }),

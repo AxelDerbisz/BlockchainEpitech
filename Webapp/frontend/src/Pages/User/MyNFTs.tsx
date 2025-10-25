@@ -198,7 +198,7 @@ export default function MyNfts() {
         const payload = JSON.parse(ev.data);
         if (payload?.signed === true) {
           setSellStatus("✅ Sell offer signed — activating...");
-          await fetch(`/api/marketplace/confirm-sell`, {
+          await fetch("/api/marketplace/confirm-sell", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ nftId }),
