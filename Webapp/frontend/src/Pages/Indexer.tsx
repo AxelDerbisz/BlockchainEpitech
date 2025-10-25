@@ -24,6 +24,12 @@ type IndexerStatus = {
     timestamp: string;
 };
 
+const API_BASE = process.env.REACT_APP_API_URL || "";
+const WS_BASE =
+  process.env.REACT_APP_WS_URL
+  || (API_BASE ? API_BASE.replace(/^http/, "ws")
+               : `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}`);
+
 export function Indexer() {
     const [events, setEvents] = useState<XRPLEvent[]>([]);
     const [status, setStatus] = useState<IndexerStatus | null>(null);
@@ -36,7 +42,7 @@ export function Indexer() {
     };
 
     useEffect(() => {
-        const ws = new WebSocket("ws://localhost:4001");
+        const ws = new WebSocket(WS_BASE);
 
         ws.onopen = () => console.log("✅ Connecté au WebSocket");
         ws.onmessage = (message) => {
@@ -52,7 +58,7 @@ export function Indexer() {
     useEffect(() => {
         const fetchStatus = async () => {
             try {
-                const res = await fetch("http://localhost:4001/api/status");
+                const res = await fetch("/api/status");
                 const data = await res.json();
                 setStatus(data);
             } catch (e) {
