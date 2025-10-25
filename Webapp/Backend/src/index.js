@@ -36,17 +36,28 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
   .map(s => s.trim())
   .filter(Boolean);
 
+const corsOptions = {
+  origin(origin, cb) {
+    // allow non-browser requests (curl/healthz) with no Origin
+    if (!origin) return cb(null, true);
 
-app.use(express.json());
-app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin) return cb(null, true); // curl / healthz
-    const ok = ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin);
+    const ok =
+      ALLOWED_ORIGINS.includes(origin) ||               // exact allow-list
+      /\.vercel\.app$/.test(origin);                    // (optional) any vercel.app preview
+
     cb(ok ? null : new Error("CORS blocked"), ok);
   },
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true,
-}));
+};
+
+
+app.use(express.json());
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+
+
+
 
 // pollIncomingPayments();
 app.locals.oracle = oracle;
