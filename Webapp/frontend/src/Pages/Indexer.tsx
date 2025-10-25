@@ -24,13 +24,15 @@ type IndexerStatus = {
     timestamp: string;
 };
 
-const API_BASE = process.env.REACT_APP_API_URL || "";
-const WS_BASE =
-  process.env.REACT_APP_WS_URL
-  || (API_BASE ? API_BASE.replace(/^http/, "ws")
-               : `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}`);
-
 export function Indexer() {
+    const API_BASE = process.env.REACT_APP_API_URL || "";
+
+    const WS_BASE =
+        process.env.REACT_APP_WS_URL ||
+        (API_BASE
+            ? API_BASE.replace(/^http/, "ws")
+            : `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`);
+
     const [events, setEvents] = useState<XRPLEvent[]>([]);
     const [status, setStatus] = useState<IndexerStatus | null>(null);
 
