@@ -9,6 +9,9 @@ import {
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
+const API = process.env.REACT_APP_API_URL || ""; // set in Vercel
+
+
 export function AccountPage() {
   const user = auth.currentUser;
   const navigate = useNavigate();
@@ -57,9 +60,8 @@ export function AccountPage() {
     `);
 
       // Step 3: Listen for signature via SSE
-      const eventSource = new EventSource(
-        `http://localhost:4001/api/status/${data.uuid}`
-      );
+      const esUrl = API ? `${API}/api/status/${data.uuid}` : `/api/status/${data.uuid}`;
+      const eventSource = new EventSource(esUrl);
 
       eventSource.onmessage = async (event) => {
         const result = JSON.parse(event.data);
