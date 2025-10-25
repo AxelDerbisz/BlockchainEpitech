@@ -25,16 +25,15 @@ async function createTrustlinePayload() {
       LimitAmount: {
         currency: CURRENCY_CODE,
         issuer: getIssuerWallet().classicAddress,
-        value: '1000000000' // raise if needed
+        value: '1000000000'
       }
     }
   };
 }
 
-// Server mints to user (issuer signs)
 async function issueToUser(destination, amount) {
   try {
-    console.log(`🚀 Issuing ${amount} ${CURRENCY_CODE} to ${destination}`);
+    console.log(`Issuing ${amount} ${CURRENCY_CODE} to ${destination}`);
 
     const payloadReq = {
       txjson: {
@@ -52,17 +51,16 @@ async function issueToUser(destination, amount) {
         instruction: `Sign to issue ${amount} ${CURRENCY_CODE} to ${destination}`,
       },
       options: {
-        submit: true, // ✅ ensures XUMM submits after signing
+        submit: true, 
       },
     };
 
     const payload = await xumm.payload.create(payloadReq);
 
-    console.log("📦 Created mint payload:", payload.uuid);
+    console.log("Created mint payload:", payload.uuid);
 
-    // Optional: wait for submission result
     const result = await xumm.payload.get(payload.uuid);
-    console.log("🧾 Payload result:", result?.response?.txid || "no txid yet");
+    console.log("Payload result:", result?.response?.txid || "no txid yet");
 
     return {
       uuid: payload.uuid,
@@ -71,7 +69,7 @@ async function issueToUser(destination, amount) {
       hash: result?.response?.txid || null,
     };
   } catch (err) {
-    console.error("❌ issueToUser error:", err);
+    console.error("issueToUser error:", err);
     throw err;
   }
 }
@@ -86,11 +84,10 @@ async function balanceOf(address) {
       peer: issuer.classicAddress
     });
 
-    console.log("🔍 account_lines:", response.result.lines);
+    console.log("account_lines:", response.result.lines);
 
     if (!response.result.lines.length) return "0";
 
-    // Just return the first line for now
     return response.result.lines[0].balance;
   });
 }

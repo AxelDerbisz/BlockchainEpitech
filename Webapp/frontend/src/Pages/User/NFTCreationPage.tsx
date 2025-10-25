@@ -30,7 +30,6 @@ const api = (p: string) => (API_BASE ? `${API_BASE}${p}` : p);
 export default function MintNft({ account }: MintNftProps) {
   const navigate = useNavigate();
 
-  // === XRPL Account ===
   const [storedAccount, setStoredAccount] = useState<string>(
     () => localStorage.getItem("xrplAccount") ?? ""
   );
@@ -55,7 +54,6 @@ export default function MintNft({ account }: MintNftProps) {
     };
   }, [storedAccount]);
 
-  // === Form states ===
   const [overrideMode, setOverrideMode] = useState(false);
   const [accountInput, setAccountInput] = useState("");
   const effectiveAccount = useMemo(() => {
@@ -78,33 +76,31 @@ export default function MintNft({ account }: MintNftProps) {
   const [nfts, setNfts] = useState<NFTItem[]>([]);
   const esRef = useRef<EventSource | null>(null);
 
-  // === Pinata Upload Section ===
+  
   const [pinataJWT, setPinataJWT] = useState("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI2YzFmNDg5YS0zNWYyLTQwNWItOWEwMS01OTcxOGNlYTNlYzciLCJlbWFpbCI6ImF4ZWwuZGVyYmlzekBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn0seyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJOWUMxIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiNzg3ZGI2ZDI2MDE0YjgxMDhlN2IiLCJzY29wZWRLZXlTZWNyZXQiOiJjODgyNDkwMTNmYjgyM2Q5NjQ0YTY3MTFiNDBiNTYwNWJkMzJjM2RhYTMyMWE5N2NmNmEyZmJkYTQ0ZmExOGMyIiwiZXhwIjoxNzkyMjMwNjI5fQ.hOpJF4V12jqQ5ds_kvhCvY-hLpe7kiYA40IHU__XFy4");
   const [nftName, setNftName] = useState("");
   const [nftDescription, setNftDescription] = useState("");
   const [nftImageFile, setNftImageFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  // --- Phone-specific metadata (all optional) ---
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
   const [color, setColor] = useState("");
   const [storageGB, setStorageGB] = useState<number | "">("");
   const [condition, setCondition] = useState<"New" | "Like New" | "Used" | "">("");
   const [batteryHealth, setBatteryHealth] = useState<number | "">("");
-  const [warrantyDate, setWarrantyDate] = useState<string>(""); // yyyy-mm-dd
+  const [warrantyDate, setWarrantyDate] = useState<string>(""); 
   const [region, setRegion] = useState("");
   const [accessories, setAccessories] = useState("");
-  const [serialOrImei, setSerialOrImei] = useState(""); // never stored in plaintext by default
+  const [serialOrImei, setSerialOrImei] = useState(""); 
   const [hashSerial, setHashSerial] = useState(true);
-  const [salt, setSalt] = useState(""); // optional
+  const [salt, setSalt] = useState(""); 
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     setNftImageFile(file);
   };
 
-  // --- helpers: hashing & utils ---
   const toHex = (buf: ArrayBuffer) =>
     Array.from(new Uint8Array(buf))
       .map((b) => b.toString(16).padStart(2, "0"))
@@ -123,7 +119,6 @@ export default function MintNft({ account }: MintNftProps) {
     return Math.floor(d.getTime() / 1000);
   };
 
-  // ✅ Allow metadata creation even without image
   const handlePinataUpload = async () => {
     if (!pinataJWT) return alert("Enter your Pinata JWT key first.");
     if (!nftName.trim()) return alert("Enter a name for your NFT.");
@@ -133,7 +128,6 @@ export default function MintNft({ account }: MintNftProps) {
 
       let imageIpfsUrl: string | undefined;
 
-      // Only upload image if selected
       if (nftImageFile) {
         const imageForm = new FormData();
         imageForm.append("file", nftImageFile);
@@ -152,7 +146,6 @@ export default function MintNft({ account }: MintNftProps) {
         imageIpfsUrl = `ipfs://${imgData.IpfsHash}`;
       }
 
-      // Build attributes array (only include filled-in values)
       const attrs: Array<Record<string, any>> = [];
       const pushAttr = (trait_type: string, value: any, display_type?: string) => {
         if (value === "" || value === undefined || value === null) return;
@@ -173,14 +166,12 @@ export default function MintNft({ account }: MintNftProps) {
       pushAttr("Region", region);
       pushAttr("Accessories", accessories);
 
-      // Serial/IMEI hashing (recommended)
       if (serialOrImei.trim()) {
         const input = salt ? `${serialOrImei.trim()}::${salt}` : serialOrImei.trim();
         const serialVal = hashSerial ? await sha256Hex(input) : serialOrImei.trim();
         pushAttr(hashSerial ? "SerialHash" : "SerialOrIMEI", serialVal);
       }
 
-      // Upload metadata JSON
       const metadata: Record<string, any> = {
         name: nftName,
         description: nftDescription,
@@ -218,7 +209,6 @@ export default function MintNft({ account }: MintNftProps) {
     }
   };
 
-  // === Helpers ===
   const resetUi = () => {
     setUuid(null);
     setQr(null);
@@ -234,9 +224,6 @@ export default function MintNft({ account }: MintNftProps) {
       return decodeURIComponent(hex.replace(/[0-9a-f]{2}/gi, "%$&").toLowerCase());
     } catch {
       try {
-        // Buffer may be polyfilled by your bundler; keep your original behavior
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        // @ts-ignore
         return Buffer.from(hex, "hex").toString("utf8");
       } catch {
         return "";
@@ -340,7 +327,6 @@ export default function MintNft({ account }: MintNftProps) {
     }
   }, [txid, nfts, status]);
 
-  // === UI ===
   return (
     <div
       style={{
@@ -556,7 +542,7 @@ export default function MintNft({ account }: MintNftProps) {
         </button>
       </div>
 
-      {/* === Mint Form === */}
+      {}
       <form onSubmit={handleMint} style={{ marginTop: 16 }}>
         <input
           value={metadataUrl}
@@ -565,7 +551,7 @@ export default function MintNft({ account }: MintNftProps) {
           style={{ width: "100%", padding: 10, marginBottom: 8 }}
         />
 
-        {/* (optional) advanced XRPL toggles kept simple to not break your backend */}
+        {}
         <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
           <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
             <input

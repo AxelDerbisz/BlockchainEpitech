@@ -20,9 +20,8 @@ async function withClient(fn){
 }
 
 async function createPool({ xrpDrops, nvdaAmount, tradingFee }) {
-  console.log("🚀 Creating AMM Pool with:", { xrpDrops, nvdaAmount, tradingFee });
+  console.log(" Creating AMM Pool with:", { xrpDrops, nvdaAmount, tradingFee });
 
-  // --- validation ---
   if (!xrpDrops || !nvdaAmount) {
     throw new Error("Missing required parameters (xrpDrops, nvdaAmount)");
   }
@@ -30,20 +29,19 @@ async function createPool({ xrpDrops, nvdaAmount, tradingFee }) {
     throw new Error("TradingFee must be a number");
   }
 
-  // --- XRPL AMMCreate transaction ---
   const txjson = {
     TransactionType: "AMMCreate",
     Account: ISSUER_ADDRESS,
-    Amount: String(xrpDrops), // XRP in drops
+    Amount: String(xrpDrops), 
     Amount2: {
-      currency: toHexCurrencyCode(CURRENCY_CODE), // properly encoded
+      currency: toHexCurrencyCode(CURRENCY_CODE), 
       issuer: ISSUER_ADDRESS,
       value: String(nvdaAmount),
     },
-    TradingFee: Math.floor(tradingFee * 1000), // e.g. 0.002 -> 2
+    TradingFee: Math.floor(tradingFee * 1000),
   };
 
-  console.log("📦 AMMCreate txjson:", txjson);
+  console.log(" AMMCreate txjson:", txjson);
 
   const payloadReq = {
     txjson,
@@ -54,7 +52,7 @@ async function createPool({ xrpDrops, nvdaAmount, tradingFee }) {
   };
 
   const payload = await xumm.payload.create(payloadReq);
-  console.log("🧩 Created XUMM payload:", payload);
+  console.log(" Created XUMM payload:", payload);
 
   if (!payload?.uuid) throw new Error("No XUMM payload UUID returned");
 

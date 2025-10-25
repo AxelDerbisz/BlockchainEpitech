@@ -15,13 +15,13 @@ dotenv.config();
 const router = express.Router();
 
 xrpl.AMM_DEPOSIT_FLAGS = {
-    tfTwoAsset: 0x00100000,      // 1048576
-    tfSingleAsset: 0x00200000,   // 2097152
-    tfLPToken: 0x00400000,       // 4194304 (optional, for LP deposits)
+    tfTwoAsset: 0x00100000,     
+    tfSingleAsset: 0x00200000,   
+    tfLPToken: 0x00400000,       
 };
 
-console.log("🔑 XUMM KEYS:", process.env.XUUM_API_PUBLIC_KEY, process.env.XUUM_API_SECRET_KEY);
-console.log("💡 TrustSet params:", {
+console.log(" XUMM KEYS:", process.env.XUUM_API_PUBLIC_KEY, process.env.XUUM_API_SECRET_KEY);
+console.log(" TrustSet params:", {
     CURRENCY_CODE,
     ISSUER_ADDRESS
 });
@@ -46,21 +46,19 @@ router.post("/xrpl/enable-rippling", async (_req, res) => {
         const result = await enableRippling();
         res.json(result);
     } catch (err) {
-        console.error("❌ Ripple enable error:", err);
+        console.error(" Ripple enable error:", err);
         res.status(500).json({ error: err.message });
     }
 });
 
-// --- Basic token info ---
 router.get("/mpt/info", (req, res) => res.json({ currency: CURRENCY_CODE }));
 
-// --- MPT (Fungible Token) ---
 router.post("/mpt/trustline", async (req, res) => {
     try {
         const { address } = req.body;
         if (!address) return res.status(400).json({ error: "Missing user XRPL address" });
 
-        console.log("💡 TrustSet params:", { CURRENCY_CODE, ISSUER_ADDRESS, address });
+        console.log(" TrustSet params:", { CURRENCY_CODE, ISSUER_ADDRESS, address });
 
         const payloadReq = {
             txjson: {
@@ -88,7 +86,7 @@ router.post("/mpt/trustline", async (req, res) => {
             refs: payload.refs,
         });
     } catch (err) {
-        console.error("❌ Xumm trustline error:", err);
+        console.error(" Xumm trustline error:", err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -99,7 +97,7 @@ router.post("/mpt/issue", verifyFirebaseToken, requireAdmin, async (req, res) =>
         return res.status(400).json({ error: "destination and amount required" });
 
     try {
-        console.log(`🚀 Issuing ${amount} NVDA to ${destination}`);
+        console.log(` Issuing ${amount} NVDA to ${destination}`);
 
         const payload = await xumm.payload.create({
             txjson: {
@@ -122,7 +120,7 @@ router.post("/mpt/issue", verifyFirebaseToken, requireAdmin, async (req, res) =>
             options: { submit: true },
         });
 
-        console.log("📦 Created mint payload:", payload.uuid);
+        console.log(" Created mint payload:", payload.uuid);
 
         res.json({
             uuid: payload.uuid,
@@ -130,23 +128,21 @@ router.post("/mpt/issue", verifyFirebaseToken, requireAdmin, async (req, res) =>
             link: payload.next.always,
         });
     } catch (err) {
-        console.error("❌ Xumm mint error:", err);
+        console.error(" Xumm mint error:", err);
         res.status(500).json({ error: err.message });
     }
 });
 
-// --- Balance ---
 router.get("/mpt/balance/:address", async (req, res) => {
     try {
         const balance = await balanceOf(req.params.address);
         res.json({ balance });
     } catch (err) {
-        console.error("❌ Balance fetch error:", err);
+        console.error(" Balance fetch error:", err);
         res.status(500).json({ error: err.message });
     }
 });
 
-// --- AMM ---
 router.post(
     "/amm/create",
     verifyFirebaseToken,
@@ -157,7 +153,7 @@ router.post(
             const result = await createPool({ xrpDrops, nvdaAmount, tradingFee });
             res.json(result);
         } catch (err) {
-            console.error("❌ AMM create error:", err);
+            console.error(" AMM create error:", err);
             res.status(500).json({ error: err.message });
         }
     }
@@ -171,9 +167,8 @@ router.post("/amm/deposit/payload", async (req, res) => {
     }
 
     try {
-        console.log(`🚀 Building AMMDeposit payload for ${userAddress}`);
+        console.log(` Building AMMDeposit payload for ${userAddress}`);
 
-        // Build two-asset deposit
         const txjson = {
             TransactionType: "AMMDeposit",
             Account: userAddress,
@@ -191,7 +186,6 @@ router.post("/amm/deposit/payload", async (req, res) => {
             },
         };
 
-        // Create payload for user to sign in Xumm
         const payload = await xumm.payload.create({
             txjson,
             custom_meta: {
@@ -200,7 +194,7 @@ router.post("/amm/deposit/payload", async (req, res) => {
             },
         });
 
-        console.log("✅ Xumm deposit payload:", payload.uuid);
+        console.log(" Xumm deposit payload:", payload.uuid);
 
         res.json({
             uuid: payload.uuid,
@@ -210,7 +204,7 @@ router.post("/amm/deposit/payload", async (req, res) => {
             next: payload.next,
         });
     } catch (err) {
-        console.error("❌ AMMDeposit payload error:", err);
+        console.error(" AMMDeposit payload error:", err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -229,7 +223,7 @@ router.post(
             const result = await publishPrice({ symbol, priceUsd, source, extra });
             res.json(result);
         } catch (err) {
-            console.error("❌ Oracle publish error:", err);
+            console.error(" Oracle publish error:", err);
             res.status(500).json({ error: err.message });
         }
     }
@@ -241,12 +235,11 @@ router.get("/oracle/latest", async (req, res) => {
         if (!data) return res.status(404).json({ error: "No oracle data found" });
         res.json(data);
     } catch (err) {
-        console.error("❌ Failed to fetch oracle data:", err);
+        console.error(" Failed to fetch oracle data:", err);
         res.status(500).json({ error: err.message });
     }
 });
 
-// ==================== AMM SWAP ====================
 
 router.post("/amm/swap/payload", async (req, res) => {
     const { userAddress, fromAmount } = req.body || {};
@@ -256,7 +249,7 @@ router.post("/amm/swap/payload", async (req, res) => {
     await client.connect();
 
     try {
-        console.log("🚀 Starting AMM swap for", userAddress, "amount:", amountDrops);
+        console.log(" Starting AMM swap for", userAddress, "amount:", amountDrops);
 
         const ammInfo = await client.request({
             command: "amm_info",
@@ -268,8 +261,8 @@ router.post("/amm/swap/payload", async (req, res) => {
         const ratio = Number(pool.amount2.value) / (Number(pool.amount) / 1_000_000);
         const nvdaValue = (Number(fromAmount) / 1_000_000) * ratio;
 
-        console.log(`💱 Pool ratio: 1 XRP = ${ratio.toFixed(6)} NVDA`);
-        console.log(`💰 Expect ~${nvdaValue.toFixed(6)} NVDA`);
+        console.log(` Pool ratio: 1 XRP = ${ratio.toFixed(6)} NVDA`);
+        console.log(` Expect ~${nvdaValue.toFixed(6)} NVDA`);
 
         const txPayment = {
             TransactionType: "Payment",
@@ -294,14 +287,14 @@ router.post("/amm/swap/payload", async (req, res) => {
             },
         });
 
-        console.log("🧩 Payment payload created:", paymentPayload.uuid);
+        console.log(" Payment payload created:", paymentPayload.uuid);
         res.json({
             uuid: paymentPayload.uuid,
             refs: paymentPayload.refs,
             next: paymentPayload.next,
         });
     } catch (err) {
-        console.error("⚠️ Payment swap path failed, falling back to OfferCreate:", err.message);
+        console.error(" Payment swap path failed, falling back to OfferCreate:", err.message);
 
         let ratio = 0.3; // fallback
         let usedFallback = true;
@@ -319,22 +312,20 @@ router.post("/amm/swap/payload", async (req, res) => {
             console.warn("Oracle price unavailable, using fallback 0.3:", e?.message || e);
         }
 
-        // Compute NVDA amount from XRP drops
         const xrpDrops = Number(fromAmount || 1_000_000); // drops
         const xrpAmount = xrpDrops / 1_000_000;          // XRP
         const nvdaValue = (xrpAmount * ratio).toFixed(6); //
 
-        // === FALLBACK: create OfferCreate ===
         try {
             const fallbackPayload = await xumm.payload.create({
                 txjson: {
                     TransactionType: "OfferCreate",
                     Account: req.body.userAddress,
-                    TakerGets: String(fromAmount || "1000000"), // XRP in drops
+                    TakerGets: String(fromAmount || "1000000"), 
                     TakerPays: {
-                        currency: "4E56444100000000000000000000000000000000", // NVDA hex
+                        currency: "4E56444100000000000000000000000000000000", 
                         issuer: "rGWJSHpjVhBi34szk9iSxYcJEw2r3n6jo4",
-                        value: nvdaValue, // static fallback value
+                        value: nvdaValue, 
                     },
                     Flags: 131072, // tfImmediateOrCancel
                 },
@@ -346,7 +337,7 @@ router.post("/amm/swap/payload", async (req, res) => {
                 },
             });
 
-            console.log("✅ Fallback OfferCreate payload created:", fallbackPayload.uuid);
+            console.log(" Fallback OfferCreate payload created:", fallbackPayload.uuid);
 
             res.json({
                 uuid: fallbackPayload.uuid,
@@ -355,7 +346,7 @@ router.post("/amm/swap/payload", async (req, res) => {
                 fallback: true,
             });
         } catch (fallbackErr) {
-            console.error("❌ Fallback OfferCreate failed:", fallbackErr);
+            console.error(" Fallback OfferCreate failed:", fallbackErr);
             res.status(500).json({ error: fallbackErr.message });
         }
     } finally {
@@ -400,7 +391,7 @@ router.post("/amm/withdraw/payload", async (req, res) => {
             next: payload.next
         });
     } catch (err) {
-        console.error("❌ Withdraw payload error:", err);
+        console.error(" Withdraw payload error:", err);
         res.status(500).json({ error: err.message });
     }
 });

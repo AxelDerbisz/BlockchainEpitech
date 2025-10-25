@@ -28,19 +28,17 @@ export default function Home() {
   const [metadata, setMetadata] = useState<Record<string, NFTMetadata>>({});
   const [loading, setLoading] = useState(true);
 
-  // === Buy state ===
+
   const [buying, setBuying] = useState<string | null>(null);
   const [buyQr, setBuyQr] = useState<string | null>(null);
   const [buyLink, setBuyLink] = useState<string | null>(null);
   const [buyStatus, setBuyStatus] = useState<string>("");
 
-  // === Helpers ===
   const toGatewayUrl = (uri: string) =>
     uri.startsWith("ipfs://")
       ? uri.replace("ipfs://", "https://ipfs.io/ipfs/")
       : uri;
 
-  // === Fetch marketplace listings ===
   useEffect(() => {
     const fetchListings = async () => {
       try {
@@ -56,7 +54,6 @@ export default function Home() {
     fetchListings();
   }, []);
 
-  // === Fetch metadata from IPFS ===
   useEffect(() => {
     listings.forEach(async (nft) => {
       if (!nft.uri || metadata[nft.nftId]) return;
@@ -71,7 +68,6 @@ export default function Home() {
     });
   }, [listings]);
 
-  // === Search filter ===
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return listings;
@@ -83,7 +79,6 @@ export default function Home() {
     );
   }, [query, listings]);
 
-  // === Handle Buy NFT ===
   const handleBuy = async (nftId: string) => {
     const buyer = localStorage.getItem("xrplAccount");
     if (!buyer) return alert("⚠️ Please connect your Xaman wallet first.");
@@ -112,16 +107,15 @@ export default function Home() {
     }
   };
 
-  // === UI ===
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* === NAVBAR === */}
+      {}
       <nav className="bg-white border-b">
         <div className="mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="text-sm text-gray-500">Bonjour {displayName}</div>
 
-            {/* === Search Bar === */}
+            {}
             <div className="flex-1 px-4">
               <div className="max-w-xl mx-auto">
                 <input
@@ -134,7 +128,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* === Buttons === */}
+            {}
 
             <div className="flex items-center gap-3">
               <button
@@ -151,7 +145,7 @@ export default function Home() {
                 🖼️ Mes NFTs
               </button>
 
-              {/* NEW: navigate to /fungible */}
+              {}
               <button
                 onClick={() => navigate("/fungible")}
                 className="inline-flex items-center gap-2 rounded-full bg-teal-600 px-4 py-2 text-white hover:bg-teal-700 transition"
@@ -170,11 +164,11 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* === MAIN CONTENT === */}
+      {}
       <main className="py-8 px-4 max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-gray-800">
-            🎨 Marketplace — NFTs en vente
+             Marketplace — NFTs en vente
           </h2>
           <span className="text-sm text-gray-500">
             {loading
@@ -252,7 +246,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* === Buy Progress === */}
+        {}
         {buying && (
           <div className="mt-10 border border-dashed border-gray-300 rounded p-6 text-center bg-white">
             <h3 className="font-semibold mb-2">Buying NFT...</h3>

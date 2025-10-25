@@ -22,7 +22,7 @@ export function AccountPage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Modal state
+
   const [modalOpen, setModalOpen] = useState(false);
   const [qrData, setQrData] = useState<{ qr: string; link: string } | null>(
     null
@@ -59,8 +59,8 @@ export function AccountPage() {
 <p>Ou <a href="${data.link}" target="_blank">ouvre Xaman ici</a></p>
     `);
 
-      // Step 3: Listen for signature via SSE
-      const esUrl = API ? `${API}/api/status/${data.uuid}` : `/api/status/${data.uuid}`;
+
+    const esUrl = API ? `${API}/api/status/${data.uuid}` : `/api/status/${data.uuid}`;
       const eventSource = new EventSource(esUrl);
 
       eventSource.onmessage = async (event) => {
