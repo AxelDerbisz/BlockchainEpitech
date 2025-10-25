@@ -1,5 +1,4 @@
 {
-  "functions": { "regions": ["cdg1"] },
   "rewrites": [
     { "source": "/api/:path*", "destination": "https://blockchainepitech.onrender.com/:path*" },
     { "source": "/(.*)", "destination": "/" }
