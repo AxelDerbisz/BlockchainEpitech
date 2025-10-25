@@ -24,7 +24,8 @@ interface MintResponse {
   link: string;
 }
 
-const API_BASE = "http://localhost:4001";
+const API_BASE = process.env.REACT_APP_API_URL || ""; // set in Vercel to https://blockchainepitech.onrender.com
+const api = (p: string) => (API_BASE ? `${API_BASE}${p}` : p);
 
 export default function MintNft({ account }: MintNftProps) {
   const navigate = useNavigate();
@@ -245,7 +246,7 @@ export default function MintNft({ account }: MintNftProps) {
 
   const fetchNfts = async (acct: string) => {
     if (!acct) return;
-    const r = await fetch(`${API_BASE}/api/nft/list/${acct}`);
+    const r = await fetch(`/api/nft/list/${acct}`);
     if (!r.ok) throw new Error("Failed to fetch NFTs");
     const data = await r.json();
     setNfts(data?.account_nfts || []);
@@ -255,7 +256,10 @@ export default function MintNft({ account }: MintNftProps) {
     try {
       esRef.current?.close();
     } catch {}
-    const es = new EventSource(`${API_BASE}/api/status/${theUuid}`);
+    const esUrl = API_BASE
+    ? `${API_BASE}/api/status/${theUuid}`
+    : `/api/status/${theUuid}`;
+    const es = new EventSource(esUrl);
     esRef.current = es;
 
     es.onmessage = async (ev: MessageEvent) => {

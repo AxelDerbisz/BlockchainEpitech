@@ -46,7 +46,7 @@ export default function Home() {
   useEffect(() => {
     const fetchListings = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/marketplace/list`);
+        const res = await fetch("/api/marketplace/list");
         const data = await res.json();
         setListings(data || []);
       } catch (err) {
@@ -96,7 +96,7 @@ export default function Home() {
       setBuyQr(null);
       setBuyLink(null);
 
-      const res = await fetch(`${API_BASE}/api/marketplace/buy`, {
+      const res = await fetch("/api/marketplace/buy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ buyer, nftId }),
